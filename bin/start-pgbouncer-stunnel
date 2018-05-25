@@ -2,9 +2,8 @@
 # Adapted from https://github.com/ryandotsmith/nginx-buildpack/
 
 main() {
-  if [[ -z $@ ]];
-    echo "start-pgbouncer-stunnel started with no arguments"
-    echo "see https://github.com/heroku/heroku-buildpack-pgbouncer for usage"
+  if [[ -z $@ ]]; then
+    >&2 echo "INVALID USAGE: start-pgbouncer-stunnel started with no arguments. See https://github.com/heroku/heroku-buildpack-pgbouncer for usage"
     exit 1
   fi
 
