@@ -94,7 +94,7 @@ aux-start() {
     trap '' SIGTERM
 
     # Start child in the background.
-    setsid -w "$@" &
+    "$@" &
     pid=$!
 
     # Translate SIGHUP to the appropriate signal to stop the child (anything
@@ -126,7 +126,7 @@ app-start() {
     # Start child in the background. This is before the trap because
     # the app needs to be able to receive when the dyno broadcasts
     # SIGTERM on shutdown.
-    setsid -w "$@" &
+    "$@" &
     pid=$!
 
     # Translate SIGHUP to the appropriate signal to stop the child
