@@ -53,7 +53,7 @@ run-pgbouncer() {
   # case something else crashed. If the dyno is shutting down, then SIGTERM
   # has already been sent.
   at "kill-app pid=$pid"
-  kill -SIGTERM -$pid > /dev/null
+  kill -SIGTERM -$pid &> /dev/null
 
   # Wait for the app to finish.
   at "wait-app pid=$pid"
@@ -94,12 +94,13 @@ aux-start() {
     trap '' SIGTERM
 
     # Start child in the background.
-    "$@" &
+    setsid -w "$@" &
+    pid=$!
 
     # Translate SIGHUP to the appropriate signal to stop the child (anything
     # except SIGTERM which is ignored). This *will* cancel the wait and may
     # lead to the outer subshell exiting before the aux process
-    trap "kill -$signal $!" SIGHUP
+    trap "kill -$signal -$pid" SIGHUP
 
     # Wait for child to finish, either by crash or by $signal
     wait
