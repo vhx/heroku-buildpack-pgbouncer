@@ -1,7 +1,25 @@
 ## Unreleased
+
+## v0.17.0 (May 28, 2025)
+* Add Dependabot configuration
+* Add handling for URI-encoded user/pass (@zyv)
+* Add PGBOUNCER_MAX_PREPARED_STATEMENTS config with default of 0 (@habovh)
+
+## v0.16.0 (August 13, 2024)
+* Update pgbouncer to v1.23.1
+
+## v0.15.0 (May 23, 2024)
+* Support SCRAM authentication, use plain passwords in auth_file
+* Add PGBOUNCER_AUTH_TYPE config and update default to scram-sha-256
+* Add PGBOUNCER_SERVER_TLS_SSLMODE config and update default to require
+* Update server_tls_sslmode to require (from prefer)
+
+## v0.14.0 (May 20, 2024)
 * Converted our remaining CircleCI tests to Github Actions
 * Add validation for PGBOUNCER_URLS
 * Add stack tests
+* Remove support for Heroku-18
+* Add support for Heroku-24
 
 ## v0.13.0 (September 9, 2022)
 * Update pgbouncer to v1.17.0 for Heroku-18 and Heroku-20 (for parity with Heroku-22)
