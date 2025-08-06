@@ -19,9 +19,10 @@ cat >> "$CONFIG_DIR/pgbouncer.ini" << EOFEOF
 [pgbouncer]
 listen_addr = 127.0.0.1
 listen_port = 6000
-auth_type = md5
+auth_type = ${PGBOUNCER_AUTH_TYPE:-scram-sha-256}
 auth_file = $CONFIG_DIR/users.txt
-server_tls_sslmode = prefer
+admin_users = u8u65ee8udm880
+server_tls_sslmode = ${PGBOUNCER_SERVER_TLS_SSLMODE:-require}
 server_tls_protocols = secure
 server_tls_ciphers = HIGH:!ADH:!AECDH:!LOW:!EXP:!MD5:!3DES:!SRP:!PSK:@STRENGTH
 
@@ -31,6 +32,7 @@ server_tls_ciphers = HIGH:!ADH:!AECDH:!LOW:!EXP:!MD5:!3DES:!SRP:!PSK:@STRENGTH
 ;   statement    - after statement finishes
 pool_mode = ${POOL_MODE}
 server_reset_query = ${SERVER_RESET_QUERY}
+max_prepared_statements = ${PGBOUNCER_MAX_PREPARED_STATEMENTS:-0}
 max_client_conn = ${PGBOUNCER_MAX_CLIENT_CONN:-100}
 default_pool_size = ${PGBOUNCER_DEFAULT_POOL_SIZE:-1}
 min_pool_size = ${PGBOUNCER_MIN_POOL_SIZE:-0}
@@ -47,6 +49,8 @@ query_wait_timeout = ${PGBOUNCER_QUERY_WAIT_TIMEOUT:-120}
 
 [databases]
 EOFEOF
+
+function urldecode() { : "${*//+/ }"; echo -e "${_//%/\\x}"; }
 
 for POSTGRES_URL in $POSTGRES_URLS
 do
@@ -72,7 +76,8 @@ do
     fi
   done
 
-  DB_MD5_PASS="md5"$(echo -n "${DB_PASS}""${DB_USER}" | md5sum | awk '{print $1}')
+  DECODED_DB_USER="$(urldecode "$DB_USER")"
+  DECODED_DB_PASS="$(urldecode "$DB_PASS")"
 
   CLIENT_DB_NAME="db${n}"
 
@@ -85,20 +90,23 @@ do
     export "${POSTGRES_URL}"_PGBOUNCER=postgres://"$DB_USER":"$DB_PASS"@127.0.0.1:6000/$CLIENT_DB_NAME
   fi
 
+DB_MD5_PASS="md5"$(echo -n "${DECODED_DB_PASS}""${DB_USER}" | md5sum | awk '{print $1}')
+
   cat >> "$CONFIG_DIR/users.txt" << EOFEOF
-"$DB_USER" "$DB_MD5_PASS"
+"$DECODED_DB_USER" "$DB_MD5_PASS"
 EOFEOF
 
-  CONNECT_QUERY_PARAM=''
+  DB_CONFIG="$CLIENT_DB_NAME= host=$DB_HOST dbname=$DB_NAME port=$DB_PORT"
+
   if [[ "$PGBOUNCER_CONNECT_QUERY" ]]; then
-    CONNECT_QUERY_PARAM="connect_query='${PGBOUNCER_CONNECT_QUERY//\'/\'\'}'"
+    DB_CONFIG="$DB_CONFIG connect_query='${PGBOUNCER_CONNECT_QUERY//\'/\'\'}'"
   fi
 
-  cat >> "$CONFIG_DIR/pgbouncer.ini" << EOFEOF
-$CLIENT_DB_NAME= host=$DB_HOST dbname=$DB_NAME port=$DB_PORT $CONNECT_QUERY_PARAM
-EOFEOF
+  echo "$DB_CONFIG" >> "$CONFIG_DIR/pgbouncer.ini"
 
   (( n += 1 ))
 done
 
 chmod go-rwx "$CONFIG_DIR"/*
+cat $CONFIG_DIR/pgbouncer.ini
+cat $CONFIG_DIR/users.txt
