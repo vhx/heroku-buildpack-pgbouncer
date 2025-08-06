@@ -90,8 +90,10 @@ do
     export "${POSTGRES_URL}"_PGBOUNCER=postgres://"$DB_USER":"$DB_PASS"@127.0.0.1:6000/$CLIENT_DB_NAME
   fi
 
+DB_MD5_PASS="md5"$(echo -n "${DECODED_DB_PASS}""${DB_USER}" | md5sum | awk '{print $1}')
+
   cat >> "$CONFIG_DIR/users.txt" << EOFEOF
-"$DECODED_DB_USER" "$DECODED_DB_PASS"
+"$DECODED_DB_USER" "$DB_MD5_PASS"
 EOFEOF
 
   DB_CONFIG="$CLIENT_DB_NAME= host=$DB_HOST dbname=$DB_NAME port=$DB_PORT"
