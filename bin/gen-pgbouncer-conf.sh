@@ -60,10 +60,12 @@ do
 
   IFS=':' read -r DB_USER DB_PASS DB_HOST DB_PORT DB_NAME <<< "$(echo "$POSTGRES_URL_VALUE" | perl -lne 'print "$1:$2:$3:$4:$5" if /^postgres(?:ql)?:\/\/([^:]*):([^@]*)@(.*?):(.*?)\/(.*?)$/')"
 
+  echo "user pass host port"
   # We can ignore DB_NAME as this isn't strictly required.
   CONN_STRING_PARTS=("$DB_USER" "$DB_PASS" "$DB_HOST" "$DB_PORT")
   for CONN_STRING_PART in "${CONN_STRING_PARTS[@]}"
   do
+    echo ${CONN_STRING_PART:-blank}
     if [ -z "$CONN_STRING_PART" ]
     then
       # Don't dump the config variable value, only refer to it.
@@ -73,6 +75,8 @@ do
   done
 
   DB_MD5_PASS="md5"$(echo -n "${DB_PASS}""${DB_USER}" | md5sum | awk '{print $1}')
+
+  echo "DB_MD5_PASS " $DB_MD5_PASS
 
   CLIENT_DB_NAME="db${n}"
 
@@ -84,6 +88,8 @@ do
   else
     export "${POSTGRES_URL}"_PGBOUNCER=postgres://"$DB_USER":"$DB_PASS"@127.0.0.1:6000/$CLIENT_DB_NAME
   fi
+
+  env
 
   cat >> "$CONFIG_DIR/users.txt" << EOFEOF
 "$DB_USER" "$DB_MD5_PASS"
