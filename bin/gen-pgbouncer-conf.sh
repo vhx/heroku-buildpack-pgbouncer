@@ -84,12 +84,10 @@ do
 
   if [ "$PGBOUNCER_PREPARED_STATEMENTS" == "false" ]
   then
-    export "${POSTGRES_URL}"_PGBOUNCER=postgres://"$DB_USER":"$DB_PASS"@127.0.0.1:6000/$CLIENT_DB_NAME?prepared_statements=false
+    export "${POSTGRES_URL}"_PGBOUNCER=postgres://"$DB_USER":"$DB_PASS"@127.0.0.1:6000/$CLIENT_DB_NAME
   else
     export "${POSTGRES_URL}"_PGBOUNCER=postgres://"$DB_USER":"$DB_PASS"@127.0.0.1:6000/$CLIENT_DB_NAME
   fi
-
-  env
 
   cat >> "$CONFIG_DIR/users.txt" << EOFEOF
 "$DB_USER" "$DB_MD5_PASS"
